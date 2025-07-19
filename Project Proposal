@@ -1,0 +1,29 @@
+An Autonomous Robot for Indoor Navigation
+
+Objective:
+To design and develop a robot capable of navigating complex indoor environments autonomously using sensor data, mapping algorithms, and obstacle avoidance techniques.
+
+Key Features:
+Autonomous Path Planning
+Robot identifies optimal paths using algorithms like A*, Dijkstra, or RRT.
+Obstacle Detection and Avoidance
+Uses sensors (IR, ultrasonic, LIDAR, depth cameras) to detect and bypass obstacles.
+SLAM (Simultaneous Localization and Mapping)
+Builds a map of the environment while tracking its own location using SLAM techniques.
+Indoor Positioning System
+GPS is unreliable indoors — the robot uses odometry, IMU, Wi-Fi triangulation, or visual markers for accurate indoor positioning.
+Real-time Decision Making
+Processes data continuously to update its path dynamically in response to environmental changes.
+
+Components needed(provisional):
+Microcontroller/Processor: Raspberry Pi or Arduino + NVIDIA Jetson (for ML tasks)
+Sensors: LIDAR, Ultrasonic sensors, Infrared sensors, IMU
+Actuators: DC motors or servo motors for movement
+Camera (optional): For visual SLAM or object detection
+Software: ROS (Robot Operating System), Python/C++, OpenCV, SLAM libraries (GMapping, Hector SLAM)
+
+Applications:
+Indoor delivery (offices, hospitals, hotels)
+Surveillance and patrolling
+Smart home assistance
+Warehouse automation
