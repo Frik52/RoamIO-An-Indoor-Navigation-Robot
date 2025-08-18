@@ -9,56 +9,56 @@ Features include interactive destination setting, real-time obstacle avoidance, 
 
 ==> Key Features
 
-   => Autonomous Robot Navigation (2D + 3D modes)
+   -> Autonomous Robot Navigation (2D + 3D modes)
     
-   => A* Pathfinding with obstacle avoidance
+   -> A* Pathfinding with obstacle avoidance
     
-   => Interactive target selection via clicks/taps
+   -> Interactive target selection via clicks/taps
     
-   => Smart Camera: overhead → follow → return
+   -> Smart Camera: overhead → follow → return
     
-   => Static & Dynamic Obstacles (walls, NPCs, doors)
+   -> Static & Dynamic Obstacles (walls, NPCs, doors)
     
-   => Indoor 3D environment + Top-down 2D grid
+   -> Indoor 3D environment + Top-down 2D grid
    
 
-🖥==> Demo Workflow
+==> Demo Workflow
 
-   => Launch simulation → Camera starts overhead.
+   -> Launch simulation → Camera starts overhead.
     
-   => User clicks a target location.
+   -> User clicks a target location.
     
-   => Robot calculates shortest path using A*.
+   -> Robot calculates shortest path using A*.
     
-   => Robot moves, avoiding obstacles in real time.
+   -> Robot moves, avoiding obstacles in real time.
     
-   => Camera follows robot → returns to overhead when idle.
+   -> Camera follows robot → returns to overhead when idle.
    
 
 ==> Tech Stack
 
-   => Engine: Unity 2021+
+   -> Engine: Unity 2021+
     
-   => Language: C#
+   -> Language: C#
     
-   => Algorithm: A* Pathfinding
+   -> Algorithm: A* Pathfinding
     
-   => Physics: Unity Physics (collisions + obstacle detection)
+   -> Physics: Unity Physics (collisions + obstacle detection)
    
 
 ==> Assets:
 
-  => 2D sprites (tiles, robot, walls)
+  -> 2D sprites (tiles, robot, walls)
   
-  => 3D prefabs (robot, furniture, walls, doors)
+  -> 3D prefabs (robot, furniture, walls, doors)
   
 
 ==> Installation & Setup
 
- => Clone the repository:
+ -> Clone the repository:
   
- => git clone https://github.com/Frik52/RoamIO-An-Indoor-Navigation-Robot.git
- => cd RoamIO-An-Indoor-Navigation-Robot
+ -> git clone https://github.com/Frik52/RoamIO-An-Indoor-Navigation-Robot.git
+ -> cd RoamIO-An-Indoor-Navigation-Robot
 
 
 -> Open in Unity Hub (Unity 2021 or newer).
@@ -70,12 +70,12 @@ Features include interactive destination setting, real-time obstacle avoidance, 
 
 ==> Future Improvements
 
-=? Multi-robot navigation & collision avoidance
+-> Multi-robot navigation & collision avoidance
 
-=> Path smoothing with Bezier curves
+-> Path smoothing with Bezier curves
  
-=> VR/AR support
+-> VR/AR support
  
-=> Machine Learning-based navigation
+-> Machine Learning-based navigation
  
 => Custom map editor
