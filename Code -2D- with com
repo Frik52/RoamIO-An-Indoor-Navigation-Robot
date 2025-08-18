@@ -5,27 +5,27 @@ import heapq        # For priority queue (used in A* search)
 import time         # For adding delays during robot movement
 import random       # For dynamic random obstacle placement
 
-# -------------------------------
+
 # Initialize pygame
-# -------------------------------
+
 pygame.init()
 
-# -------------------------------
+
 # Grid size and screen dimensions
-# -------------------------------
+
 ROWS, COLS = 20, 20             # 20x20 grid
 CELL_SIZE = 30                  # Each grid cell is 30x30 pixels
 WIDTH, HEIGHT = COLS * CELL_SIZE, ROWS * CELL_SIZE   # Screen dimensions
 
-# -------------------------------
+
 # Setup display
-# -------------------------------
+
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))  
 pygame.display.set_caption("🤖 Autonomous Robot with Dynamic Obstacles, Replanning, Goal Changing, and Obstacle Removal")
 
-# -------------------------------
+
 # Define colors (RGB format)
-# -------------------------------
+
 WHITE = (255, 255, 255)   # Empty cell
 BLACK = (0, 0, 0)         # Obstacles
 GREY = (220, 220, 220)    # Path cells
@@ -34,15 +34,15 @@ GREEN = (0, 255, 0)       # Start node
 BLUE = (0, 0, 255)        # End/goal node
 PURPLE = (160, 32, 240)   # Open set nodes
 
-# -------------------------------
+
 # Load emoji font (for robot icon)
-# -------------------------------
+
 pygame.font.init()
 font = pygame.font.SysFont("Segoe UI Emoji", 24)
 
-# -------------------------------
+
 # Node class (represents each cell in grid)
-# -------------------------------
+
 class Node:
     def __init__(self, row, col):
         self.row = row              # Row index of this node
@@ -102,15 +102,14 @@ class Node:
             if 0 <= r < ROWS and 0 <= c < COLS and not grid[r][c].is_obstacle:
                 self.neighbors.append(grid[r][c])
 
-# -------------------------------
 # Heuristic function (Manhattan distance)
-# -------------------------------
+
 def heuristic(a, b):
     return abs(a.row - b.row) + abs(a.col - b.col)
 
-# -------------------------------
+
 # Reconstruct path after reaching goal
-# -------------------------------
+
 def reconstruct_path(came_from, current, draw, robot, grid, end):
     path = []
     while current in came_from:     # Trace back parents
@@ -136,9 +135,9 @@ def reconstruct_path(came_from, current, draw, robot, grid, end):
             replan(draw, grid, robot, end)
             return
 
-# -------------------------------
+
 # A* Search Algorithm
-# -------------------------------
+
 def a_star(draw, grid, start, end, robot):
     count = 0
     open_set = []                            # Priority queue
@@ -181,9 +180,9 @@ def a_star(draw, grid, start, end, robot):
 
     return False
 
-# -------------------------------
+
 # Re-plan function (reset costs and re-run A*)
-# -------------------------------
+
 def replan(draw, grid, robot, end):
     for row in grid:
         for node in row:
@@ -193,9 +192,9 @@ def replan(draw, grid, robot, end):
             node.parent = None
     a_star(draw, grid, robot.node, end, robot)
 
-# -------------------------------
+
 # Place random obstacle avoiding robot and goal
-# -------------------------------
+
 def place_random_obstacle(grid, robot, end):
     while True:
         r = random.randint(0, ROWS-1)
@@ -205,24 +204,24 @@ def place_random_obstacle(grid, robot, end):
             node.make_obstacle()
             break
 
-# -------------------------------
+
 # Create the grid of nodes
-# -------------------------------
+
 def make_grid():
     return [[Node(i, j) for j in range(COLS)] for i in range(ROWS)]
 
-# -------------------------------
+
 # Draw grid lines
-# -------------------------------
+
 def draw_grid(win):
     for i in range(ROWS):
         pygame.draw.line(win, GREY, (0, i * CELL_SIZE), (WIDTH, i * CELL_SIZE))
     for j in range(COLS):
         pygame.draw.line(win, GREY, (j * CELL_SIZE, 0), (j * CELL_SIZE, HEIGHT))
 
-# -------------------------------
+
 # Draw everything (grid + robot)
-# -------------------------------
+
 def draw(win, grid, robot):
     win.fill(WHITE)
     for row in grid:
@@ -232,16 +231,16 @@ def draw(win, grid, robot):
     draw_grid(win)
     pygame.display.update()
 
-# -------------------------------
+
 # Convert mouse click to grid (row, col)
-# -------------------------------
+
 def get_clicked_pos(pos):
     y, x = pos
     return x // CELL_SIZE, y // CELL_SIZE
 
-# -------------------------------
+
 # Robot class
-# -------------------------------
+
 class Robot:
     def __init__(self, node):
         self.node = node             # Current position node
@@ -254,9 +253,9 @@ class Robot:
         text = font.render("🤖", True, (0, 0, 0))
         win.blit(text, (self.node.x + 4, self.node.y + 2))
 
-# -------------------------------
+
 # Main function (game loop)
-# -------------------------------
+
 def main(win):
     grid = make_grid()
     start = grid[0][0]                   # Start = top-left corner
@@ -326,8 +325,8 @@ def main(win):
 
         pygame.time.delay(50)   # Small delay to reduce CPU usage
 
-# -------------------------------
-# Run the program
-# -------------------------------
+
+
+
 if __name__ == "__main__":
     main(WIN)
