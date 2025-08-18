@@ -1,0 +1,333 @@
+# Import required libraries  [for 2D]
+import pygame       # For graphics and visualization
+import sys          # For system exit
+import heapq        # For priority queue (used in A* search)
+import time         # For adding delays during robot movement
+import random       # For dynamic random obstacle placement
+
+# -------------------------------
+# Initialize pygame
+# -------------------------------
+pygame.init()
+
+# -------------------------------
+# Grid size and screen dimensions
+# -------------------------------
+ROWS, COLS = 20, 20             # 20x20 grid
+CELL_SIZE = 30                  # Each grid cell is 30x30 pixels
+WIDTH, HEIGHT = COLS * CELL_SIZE, ROWS * CELL_SIZE   # Screen dimensions
+
+# -------------------------------
+# Setup display
+# -------------------------------
+WIN = pygame.display.set_mode((WIDTH, HEIGHT))  
+pygame.display.set_caption("🤖 Autonomous Robot with Dynamic Obstacles, Replanning, Goal Changing, and Obstacle Removal")
+
+# -------------------------------
+# Define colors (RGB format)
+# -------------------------------
+WHITE = (255, 255, 255)   # Empty cell
+BLACK = (0, 0, 0)         # Obstacles
+GREY = (220, 220, 220)    # Path cells
+RED = (255, 0, 0)         # Closed set nodes
+GREEN = (0, 255, 0)       # Start node
+BLUE = (0, 0, 255)        # End/goal node
+PURPLE = (160, 32, 240)   # Open set nodes
+
+# -------------------------------
+# Load emoji font (for robot icon)
+# -------------------------------
+pygame.font.init()
+font = pygame.font.SysFont("Segoe UI Emoji", 24)
+
+# -------------------------------
+# Node class (represents each cell in grid)
+# -------------------------------
+class Node:
+    def __init__(self, row, col):
+        self.row = row              # Row index of this node
+        self.col = col              # Column index of this node
+        self.x = col * CELL_SIZE    # Pixel X coordinate
+        self.y = row * CELL_SIZE    # Pixel Y coordinate
+        self.color = WHITE          # Default color is white (empty cell)
+        self.neighbors = []         # List of valid neighbor nodes
+        self.g = float("inf")       # g = cost from start to this node
+        self.h = 0                  # h = heuristic (distance to goal)
+        self.f = 0                  # f = g + h (priority in A*)
+        self.parent = None          # For reconstructing path
+        self.is_obstacle = False    # Flag if this node is an obstacle
+
+    def get_pos(self):
+        return self.row, self.col   # Return (row, col) position
+
+    def reset(self):
+        # Reset node back to default (non-obstacle, empty cell)
+        self.color = WHITE
+        self.is_obstacle = False
+        self.g = float("inf")
+        self.h = 0
+        self.f = 0
+        self.parent = None
+
+    # Change node colors based on roles
+    def make_start(self): self.color = GREEN     # Start node
+    def make_end(self): self.color = BLUE       # End node
+    def make_closed(self): self.color = RED     # Node explored (closed set)
+    def make_open(self): self.color = PURPLE    # Node discovered (open set)
+    def make_path(self): self.color = GREY      # Path cell
+
+    def make_obstacle(self):
+        # Mark this node as an obstacle
+        self.is_obstacle = True
+        self.color = BLACK
+
+    def remove_obstacle(self):
+        # Remove obstacle status
+        self.is_obstacle = False
+        self.color = WHITE
+
+    def draw(self, win):
+        # Draw node as a rectangle
+        pygame.draw.rect(win, self.color, (self.x, self.y, CELL_SIZE, CELL_SIZE))
+        # Draw a red circle on obstacle cells
+        if self.is_obstacle:
+            pygame.draw.circle(win, RED, (self.x + CELL_SIZE // 2, self.y + CELL_SIZE // 2), CELL_SIZE // 3)
+
+    def update_neighbors(self, grid):
+        # Update neighbors (up, down, left, right only)
+        self.neighbors = []
+        for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
+            r, c = self.row + dr, self.col + dc
+            # Only valid cells inside grid and not obstacles
+            if 0 <= r < ROWS and 0 <= c < COLS and not grid[r][c].is_obstacle:
+                self.neighbors.append(grid[r][c])
+
+# -------------------------------
+# Heuristic function (Manhattan distance)
+# -------------------------------
+def heuristic(a, b):
+    return abs(a.row - b.row) + abs(a.col - b.col)
+
+# -------------------------------
+# Reconstruct path after reaching goal
+# -------------------------------
+def reconstruct_path(came_from, current, draw, robot, grid, end):
+    path = []
+    while current in came_from:     # Trace back parents
+        current = came_from[current]
+        path.append(current)
+    path.reverse()                  # Reverse path from start to goal
+
+    # Move robot along path
+    for node in path:
+        if node.color != GREEN and node.color != BLUE:
+            node.make_path()        # Mark cell as part of path
+        draw()
+        robot.move_to(node)         # Robot moves step by step
+        time.sleep(0.05)
+
+        # Randomly introduce dynamic obstacles (5% chance)
+        if random.random() < 0.05:
+            place_random_obstacle(grid, robot, end)
+            for row in grid:
+                for n in row:
+                    n.update_neighbors(grid)
+            # Re-plan from current position if obstacle added
+            replan(draw, grid, robot, end)
+            return
+
+# -------------------------------
+# A* Search Algorithm
+# -------------------------------
+def a_star(draw, grid, start, end, robot):
+    count = 0
+    open_set = []                            # Priority queue
+    heapq.heappush(open_set, (0, count, start))
+    came_from = {}                           # Store parent nodes
+    start.g = 0
+    start.f = heuristic(start, end)          # f = g + h
+    open_set_hash = {start}                  # Hash set for fast lookup
+
+    while open_set:
+        # Check for quit event
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit(); sys.exit()
+
+        current = heapq.heappop(open_set)[2] # Node with lowest f
+        open_set_hash.remove(current)
+
+        if current == end:                   # Goal found
+            reconstruct_path(came_from, end, draw, robot, grid, end)
+            return True
+
+        # Explore neighbors
+        for neighbor in current.neighbors:
+            temp_g = current.g + 1           # Assume cost = 1 for grid move
+            if temp_g < neighbor.g:
+                came_from[neighbor] = current
+                neighbor.g = temp_g
+                neighbor.h = heuristic(neighbor, end)
+                neighbor.f = neighbor.g + neighbor.h
+                if neighbor not in open_set_hash:
+                    count += 1
+                    heapq.heappush(open_set, (neighbor.f, count, neighbor))
+                    open_set_hash.add(neighbor)
+                    neighbor.make_open()
+
+        draw()
+        if current != start:
+            current.make_closed()
+
+    return False
+
+# -------------------------------
+# Re-plan function (reset costs and re-run A*)
+# -------------------------------
+def replan(draw, grid, robot, end):
+    for row in grid:
+        for node in row:
+            node.g = float("inf")
+            node.h = 0
+            node.f = 0
+            node.parent = None
+    a_star(draw, grid, robot.node, end, robot)
+
+# -------------------------------
+# Place random obstacle avoiding robot and goal
+# -------------------------------
+def place_random_obstacle(grid, robot, end):
+    while True:
+        r = random.randint(0, ROWS-1)
+        c = random.randint(0, COLS-1)
+        node = grid[r][c]
+        if node != robot.node and node != end and not node.is_obstacle:
+            node.make_obstacle()
+            break
+
+# -------------------------------
+# Create the grid of nodes
+# -------------------------------
+def make_grid():
+    return [[Node(i, j) for j in range(COLS)] for i in range(ROWS)]
+
+# -------------------------------
+# Draw grid lines
+# -------------------------------
+def draw_grid(win):
+    for i in range(ROWS):
+        pygame.draw.line(win, GREY, (0, i * CELL_SIZE), (WIDTH, i * CELL_SIZE))
+    for j in range(COLS):
+        pygame.draw.line(win, GREY, (j * CELL_SIZE, 0), (j * CELL_SIZE, HEIGHT))
+
+# -------------------------------
+# Draw everything (grid + robot)
+# -------------------------------
+def draw(win, grid, robot):
+    win.fill(WHITE)
+    for row in grid:
+        for node in row:
+            node.draw(win)
+    robot.draw(win)
+    draw_grid(win)
+    pygame.display.update()
+
+# -------------------------------
+# Convert mouse click to grid (row, col)
+# -------------------------------
+def get_clicked_pos(pos):
+    y, x = pos
+    return x // CELL_SIZE, y // CELL_SIZE
+
+# -------------------------------
+# Robot class
+# -------------------------------
+class Robot:
+    def __init__(self, node):
+        self.node = node             # Current position node
+
+    def move_to(self, node):
+        self.node = node             # Move to new node
+
+    def draw(self, win):
+        # Draw robot as emoji on grid cell
+        text = font.render("🤖", True, (0, 0, 0))
+        win.blit(text, (self.node.x + 4, self.node.y + 2))
+
+# -------------------------------
+# Main function (game loop)
+# -------------------------------
+def main(win):
+    grid = make_grid()
+    start = grid[0][0]                   # Start = top-left corner
+    end = grid[ROWS - 1][COLS - 1]       # Goal = bottom-right corner
+    start.make_start()
+    end.make_end()
+    robot = Robot(start)
+
+    running = True
+    while running:
+        for row in grid:
+            for node in row:
+                node.update_neighbors(grid)
+
+        draw(win, grid, robot)           # Redraw everything
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                pygame.quit(); sys.exit()
+
+            if pygame.mouse.get_pressed()[0]:  # Left-click = place obstacle
+                pos = pygame.mouse.get_pos()
+                row, col = get_clicked_pos(pos)
+                node = grid[row][col]
+                if node != start and node != end:
+                    node.make_obstacle()
+
+            if pygame.mouse.get_pressed()[2]:  # Right-click = remove/set goal
+                pos = pygame.mouse.get_pos()
+                row, col = get_clicked_pos(pos)
+                node = grid[row][col]
+                if node.is_obstacle:
+                    node.remove_obstacle()
+                elif node != start:
+                    # Change goal dynamically
+                    end = node
+                    for r in grid:
+                        for n in r:
+                            if n.color == BLUE:
+                                n.color = WHITE
+                    end.make_end()
+                    replan(lambda: draw(win, grid, robot), grid, robot, end)
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    # Reset everything
+                    for row in grid:
+                        for node in row:
+                            node.reset()
+                    start = grid[0][0]
+                    end = grid[ROWS - 1][COLS - 1]
+                    start.make_start()
+                    end.make_end()
+                    robot.move_to(start)
+
+                if event.key == pygame.K_RETURN:
+                    # Run A* search
+                    for row in grid:
+                        for node in row:
+                            node.update_neighbors(grid)
+                            node.g = float("inf")
+                            node.h = 0
+                            node.f = 0
+                            node.parent = None
+                    a_star(lambda: draw(win, grid, robot), grid, robot.node, end, robot)
+
+        pygame.time.delay(50)   # Small delay to reduce CPU usage
+
+# -------------------------------
+# Run the program
+# -------------------------------
+if __name__ == "__main__":
+    main(WIN)
