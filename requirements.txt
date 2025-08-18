@@ -15,7 +15,7 @@ This project is a robot navigation simulation/game built in Unity, supporting bo
         
         Implement smooth camera follow and transitions.
 
-✅ Functional Requirements
+=> Functional Requirements
         Core Navigation
         
                 Robot moves from start → target location.
