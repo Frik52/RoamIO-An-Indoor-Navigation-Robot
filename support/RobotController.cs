@@ -18,6 +18,14 @@ public class RobotController : MonoBehaviour
     private Rigidbody rb;
     private LineRenderer lineRenderer;
 
+    // 🔹 Stuck detection
+    private Vector3 lastPosition;
+    private float stuckTimer = 0f;
+    public float stuckThreshold = 0.05f; // distance threshold
+    public float stuckTimeLimit = 1f;    // seconds before recalculating
+
+    private Vector3? goalDestination = null; // remember final goal
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -32,6 +40,8 @@ public class RobotController : MonoBehaviour
         lineRenderer.startColor = Color.green;
         lineRenderer.endColor = Color.green;
         lineRenderer.positionCount = 0;
+
+        lastPosition = rb.position;
     }
 
     void FixedUpdate()
@@ -39,6 +49,7 @@ public class RobotController : MonoBehaviour
         if (currentTarget.HasValue)
         {
             MoveAlongPath();
+            CheckStuck();
         }
     }
 
@@ -49,6 +60,9 @@ public class RobotController : MonoBehaviour
             Debug.LogWarning("GridManager or Pathfinding not assigned!");
             return;
         }
+
+        // Remember final goal
+        goalDestination = destination;
 
         // Update obstacle info
         grid.ScanForObstacles(obstacleMask);
@@ -74,10 +88,11 @@ public class RobotController : MonoBehaviour
 
         Debug.Log($"📍 Path set with {newPath.Count} waypoints.");
     }
+
     public bool IsMoving()
-{
-    return currentTarget.HasValue || pathQueue.Count > 0;
-}
+    {
+        return currentTarget.HasValue || pathQueue.Count > 0;
+    }
 
     private void MoveAlongPath()
     {
@@ -96,9 +111,51 @@ public class RobotController : MonoBehaviour
             else
             {
                 currentTarget = null;
+                goalDestination = null;
                 lineRenderer.positionCount = 0; // clear path
                 Debug.Log("🏁 Destination reached.");
             }
         }
+    }
+
+    public bool HasGoal()
+    {
+        return goalDestination.HasValue;
+    }
+
+    public void RecalculatePath()
+    {
+        if (goalDestination.HasValue)
+        {
+            Debug.Log("🔄 Lidar triggered replanning...");
+            SetTargetPath(goalDestination.Value);
+        }
+    }
+
+
+    private void CheckStuck()
+    {
+        float distanceMoved = Vector3.Distance(rb.position, lastPosition);
+
+        if (distanceMoved < stuckThreshold && IsMoving())
+        {
+            stuckTimer += Time.fixedDeltaTime;
+
+            if (stuckTimer >= stuckTimeLimit)
+            {
+                Debug.Log("⚠ Robot stuck! Recalculating path...");
+
+                if (goalDestination.HasValue)
+                    SetTargetPath(goalDestination.Value);
+
+                stuckTimer = 0f;
+            }
+        }
+        else
+        {
+            stuckTimer = 0f; // reset if moving
+        }
+
+        lastPosition = rb.position;
     }
 }
