@@ -1,4 +1,4 @@
-# RoamIO
+# Autonomous Indoor Robot Navigation Using A Search with Dynamic Obstacle Avoidance
  => Overview
 
 This project is a robot navigation simulation built in Unity with support for both 2D and 3D environments.
