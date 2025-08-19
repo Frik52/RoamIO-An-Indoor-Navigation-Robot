@@ -1,0 +1,18 @@
+# run_diagonal.py
+import main   # <-- your big original file, unchanged!
+
+def apply_diagonal(grid, ROWS, COLS):
+    """Give each node diagonal neighbors as well."""
+    for row in grid:
+        for node in row:
+            node.neighbors = []
+            for dr, dc in [(-1,0), (1,0), (0,-1), (0,1),
+                           (-1,-1), (-1,1), (1,-1), (1,1)]:
+                r, c = node.row + dr, node.col + dc
+                if 0 <= r < ROWS and 0 <= c < COLS and not grid[r][c].is_obstacle:
+                    node.neighbors.append(grid[r][c])
+
+if __name__ == "__main__":
+    grid = main.make_grid()
+    apply_diagonal(grid, main.ROWS, main.COLS)
+    main.main(main.WIN)   # run with diagonal enhancement

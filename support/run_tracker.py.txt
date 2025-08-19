@@ -1,0 +1,22 @@
+# run_tracker.py
+import main
+
+class PathTracker:
+    def __init__(self):
+        self.steps = 0
+    def add(self): self.steps += 1
+    def report(self): print(f"✅ Robot took {self.steps} steps")
+
+tracker = PathTracker()
+
+# Monkey-patch the robot move
+orig_move = main.Robot.move_to
+def tracked_move(self, node):
+    tracker.add()
+    orig_move(self, node)
+
+main.Robot.move_to = tracked_move
+
+if __name__ == "__main__":
+    main.main(main.WIN)
+    tracker.report()
