@@ -16,22 +16,7 @@ This project is a Unity-based robot navigation system with **LiDAR obstacle dete
   - Handles goal setting, pathfinding, and movement.
 - **Modular Design**:
   - Easy to extend with new sensors or AI logic.
-
----
-
-## 📂 Project Structure
-/Assets
-/Scripts
-├── LidarSensor.cs
-├── RobotController.cs
-├── CameraController.cs
-/Scenes
-├── MainScene.unity
-
-yaml
-Copy
-Edit
-
+    
 ---
 
 ## 🛠 Requirements
