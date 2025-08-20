@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 using UnityEngine;
 
 // This script simulates a Lidar sensor for the robot
@@ -117,4 +111,5 @@ public class LidarSensor : MonoBehaviour
         }
     }
 }
+
 
